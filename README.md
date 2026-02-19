@@ -2,6 +2,8 @@
 
 **Proof of Existence. Not Operational Transparency.**
 
+*Governance should be time-bound, not trust-bound.*
+
 ---
 
 ## What This Repository Is
