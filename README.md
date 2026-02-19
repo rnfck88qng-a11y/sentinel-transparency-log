@@ -1,54 +1,75 @@
 # Sentinel Transparency Log
 
-**Cryptographic governance existence proofs.**
-
-This repository publishes signed transparency anchors from the Sentinel governance engine. Each anchor proves that a specific governance state existed at a specific time, without revealing operational details.
+**Proof of Existence. Not Operational Transparency.**
 
 ---
 
-## What Is Published
+## What This Repository Is
 
-Each anchor contains **only**:
+This repository publishes **cryptographic existence proofs** of Sentinel's governance state.
+
+### We do not publish
+
+- Risk scores
+- Compliance findings
+- Repository names
+- Policy contents
+- Operational metrics
+
+### We publish only
 
 | Field | Description |
-|---|---|
+| --- | --- |
 | `org_anchor_hash` | SHA-256 of the current governance state |
 | `signature` | Ed25519 signature of the canonical hash |
 | `key_id` | Identifier of the signing key |
-| `anchor_sequence` | Monotonically increasing sequence number |
 | `timestamp` | ISO 8601 publication time |
-| `source_count` | Number of federated governance sources |
+| `anchor_sequence` | Monotonically increasing sequence number |
 
-## What Is NOT Published
+Each anchor is:
 
-- Risk scores
-- Repository names
-- Policy definitions
-- Compliance findings
-- Drift events
-- Operational metrics
+- **Deterministically generated** — same input always produces same hash
+- **Canonically signed** — never raw JSON
+- **Verified against a public key registry** — key lifecycle is enforced
+- **Append-only** — protected by branch rules, no force-push
+- **Independently verifiable** — no database or internal access required
 
-This is **proof of existence**, not operational transparency.
+**You do not need to trust us. You can verify us.**
 
 ---
 
-## Verification
+## What This Proves
 
-Anyone can verify this log independently:
+Each anchor proves:
+
+> At time T, a specific governance state existed.
+
+That state includes:
+
+- Policy definitions
+- Compliance evaluations
+- Federation status across repositories
+- Key lifecycle state
+
+**The details remain private. The existence proof is public.**
+
+---
+
+## How To Verify
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/rnfck88qng-a11y/sentinel-transparency-log.git
 cd sentinel-transparency-log
 node verify-transparency.mjs
 ```
 
-The verifier checks:
+Exit code `0` means:
 
-1. **Sequential numbering** — no gaps, no duplicates
-2. **Ed25519 signatures** — every anchor cryptographically verified
-3. **Key lifecycle** — no anchors signed by revoked keys
-4. **Canonical determinism** — same input always produces same hash
-5. **Cadence compliance** — missed publication windows are flagged
+- ✅ Sequential numbering valid
+- ✅ Ed25519 signatures valid
+- ✅ No revoked keys used
+- ✅ Canonical determinism intact
+- ✅ Publication cadence respected
 
 No database access required. No internal systems access required.
 
@@ -60,66 +81,72 @@ No database access required. No internal systems access required.
 {
   "schema_version": 9,
   "anchor_sequence": 1,
-  "timestamp": "2026-02-19T12:00:00.000Z",
-  "org_anchor_hash": "abc123...",
-  "source_count": 3,
+  "timestamp": "2026-02-19T19:33:09.064Z",
+  "org_anchor_hash": "f7e13c8c...",
+  "source_count": 2,
   "signature": "base64...",
-  "key_id": "def456..."
+  "key_id": "e67ded56..."
 }
 ```
 
-### Canonical Signing String
+Anchors are signed using a deterministic canonical string:
 
-Anchors are signed using a deterministic canonical string, never raw JSON:
-
-```
-schema_version=9|anchor_sequence=1|timestamp=2026-02-19T12:00:00.000Z|org_anchor_hash=abc123...
+```text
+schema_version=9|anchor_sequence=1|timestamp=...|org_anchor_hash=...
 ```
 
 `signature = Ed25519_sign(private_key, sha256(canonical_string))`
 
 ---
 
-## Publication Cadence
-
-Anchors are published on a **weekly** schedule. If a publication window is missed, the next anchor includes a `cadence_violation: true` flag. Operational imperfections are visible, never hidden.
-
----
-
 ## Key Management
 
-Public keys are published in `KEYS/org-public-keys.json`. Key lifecycle states:
+Public keys are published in `KEYS/org-public-keys.json`.
 
-| Status | Meaning |
-|---|---|
+| Status | Verification Rule |
+| --- | --- |
 | `ACTIVE` | Signatures accepted |
 | `RETIRED` | Historical signatures remain valid |
 | `REVOKED` | All signatures from this key are rejected |
 
-Key rotation and revocation events are signed and recorded in the organization's governance ledger.
+Key rotation and revocation events are signed and permanently recorded.
+
+---
+
+## Publication Cadence
+
+Anchors are published on a **weekly** schedule. If a publication window is missed, the next anchor includes `"cadence_violation": true`. Operational imperfections are visible, never hidden.
 
 ---
 
 ## Trust Model
 
-This log provides **cryptographic accountability**:
-
-- **Tamper evidence**: Git history is append-only (protected branch, no force-push)
-- **Attribution**: Every anchor is signed with an Ed25519 key
-- **Independence**: Verification requires no internal access
-- **Completeness**: Sequence numbers prevent silent omission
+- **Tamper evidence** — Git history is append-only (protected branch, no force-push)
+- **Attribution** — every anchor is signed with an Ed25519 key
+- **Independence** — verification requires no internal access
+- **Completeness** — sequence numbers prevent silent omission
 
 ---
 
 ## Repository Structure
 
+```text
+anchors/                    Sequential anchor files
+KEYS/                       Public key registry
+CTP_SPEC.md                 Controlled Transparency Protocol specification
+README.md                   This file
+verify-transparency.mjs     Standalone verification script
 ```
-anchors/        Sequential anchor files (000001.json, 000002.json, ...)
-KEYS/           Public key registry (org-public-keys.json)
-CTP_SPEC.md     Controlled Transparency Protocol specification
-README.md       This file
-verify-transparency.mjs   Standalone verification script
-```
+
+---
+
+## Governance Philosophy
+
+Determinism over interpretation.
+Proof over assertion.
+Discipline over exposure.
+
+This is constitutional governance infrastructure.
 
 ---
 
